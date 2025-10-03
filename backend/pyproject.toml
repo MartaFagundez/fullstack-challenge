@@ -1,0 +1,9 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+lint.select = ["E", "F", "I"]  # pycodestyle, Pyflakes, isort
+lint.ignore = []
+exclude = ["migrations", ".venv"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
