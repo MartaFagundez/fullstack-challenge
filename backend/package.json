@@ -1,0 +1,10 @@
+{
+  "name": "@app/backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "api": "flask --app app:create_app run --debug --port 5000",
+    "lint": "ruff check app",
+    "fmt": "ruff format app"
+  }
+}
