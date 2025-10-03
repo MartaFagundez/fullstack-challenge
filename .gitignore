@@ -1,0 +1,16 @@
+# Node
+node_modules
+dist
+# Front
+frontend/.vite
+# Python
+backend/.venv
+backend/__pycache__
+backend/.pytest_cache
+backend/instance
+# Env
+*.env
+.env
+# Editor
+.vscode
+.DS_Store

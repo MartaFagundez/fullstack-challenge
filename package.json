@@ -1,0 +1,21 @@
+{
+  "name": "fullstack-challenge",
+  "author": "Marta Fagúndez",
+  "license": "ISC",
+  "private": "true",
+  "version": "0.1.0",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c auto \"npm:api -w backend\" \"npm:dev -w frontend\"",
+    "lint": "npm run -w backend lint && npm run -w frontend lint",
+    "format": "prettier -w ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "eslint": "^9.36.0",
+    "prettier": "^3.6.2"
+  }
+}
