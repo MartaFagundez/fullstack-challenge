@@ -1,6 +1,7 @@
 from flask import Flask
 
 from .api.health import bp as health_bp
+from .cli import register_cli
 from .config import load_config
 from .errors import register_error_handlers
 from .extensions import cors, db, migrate
@@ -18,7 +19,11 @@ def create_app():
     # Blueprints
     app.register_blueprint(health_bp)
 
+    # Importa modelos para que Flask-Migrate los detecte
+    from .models import order, user  # noqa: F401
+
     # Errores JSON
     register_error_handlers(app)
 
+    register_cli(app)
     return app
