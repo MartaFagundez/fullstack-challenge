@@ -1,8 +1,10 @@
 from flask import Flask
-from .config import load_config
-from .extensions import db, migrate, cors
-from .errors import register_error_handlers
+
 from .api.health import bp as health_bp
+from .config import load_config
+from .errors import register_error_handlers
+from .extensions import cors, db, migrate
+
 
 def create_app():
     app = Flask(__name__)
