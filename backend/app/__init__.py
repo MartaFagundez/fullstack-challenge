@@ -18,6 +18,9 @@ def create_app():
     # Blueprints
     app.register_blueprint(health_bp)
 
+    # Importa modelos para que Flask-Migrate los detecte
+    from .models import user, order  # noqa: F401
+
     # Errores JSON
     register_error_handlers(app)
 
