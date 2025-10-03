@@ -1,82 +1,84 @@
-# Fullstack Challenge – Monorepo (V1)
+# Fullstack Challenge – Monorepo (V2) [![API Docs](https://img.shields.io/badge/Swagger-OpenAPI%203-blue?logo=swagger)](http://localhost:5000/apidocs)
 
-> **Estado:** V1 completado (modelos, migraciones, validaciones y seed básico).  
+> **Estado:** V2 completado (endpoints, manejo de errores, paginación, Swagger y colección Postman).  
 > **Meta de proyecto:** llegar hasta V7 con API, UI, extras y deploy.  
-> **Stack:** Monorepo (npm workspaces) · Frontend (React + TypeScript + Vite + Bootstrap, React Router 7) · Backend (Flask + SQLAlchemy + Flask‑Migrate) · Calidad (Ruff) · DX (ESLint/Prettier, concurrently).
+> **Stack:** Monorepo (npm workspaces) · Frontend (React + TypeScript + Vite + Bootstrap, React Router 7) · Backend (Flask + SQLAlchemy + Flask-Migrate + Flasgger) · Calidad (Ruff) · DX (ESLint/Prettier, concurrently).
 
 ---
 
-## ¿Qué incluye la V1?
+## ¿Qué incluye la V2?
 
-- ✅ **Modelos** `User` y `Order` con relación **1—N**.
-- ✅ **Validaciones** de negocio:
-  - `User.email` **único**, **normalizado a lowercase** y validado por **regex**.
-  - `Order.amount > 0` mediante **CheckConstraint**.
-- ✅ **Timestamps** (`created_at`) con `server_default=func.now()`.
-- ✅ **Migraciones** iniciales creadas y aplicadas (Flask‑Migrate).
-- ✅ **Seed básico** (CLI) con 2 usuarios y 3 pedidos.
-- ✅ Mantiene todo lo de **V0** (app factory, `/health`, CORS, Bootstrap en el front, Ruff, ESLint/Prettier, scripts de DX).
+- ✅ **Endpoints** implementados:
+  - `POST /users` (crear usuario)
+  - `GET /users` (listar con paginación)
+  - `GET /users/<id>/orders` (pedidos de un usuario)
+  - `POST /orders` (crear pedido)
+  - `GET /orders` (listar con paginación e **incluye datos del usuario**)
+- ✅ **Manejo de errores JSON** consistente (`{"error": {"code","message","details?"}}`) con códigos `400/404/409/422/500`.
+- ✅ **Paginación** común (`page`, `limit`, tope 100) y metadatos `{ total, pages }` en listados.
+- ✅ **Swagger UI** accesible en **`/apidocs`** (via **Flasgger**)
+- ✅ **Colección Postman** + **Environment local** (variable `baseUrl`).
 
-> **No incluido todavía:** endpoints de negocio, Swagger, UI con formularios/listas, tests. Se agregará desde V2 en adelante.
+> **Importante:** en `Order`, el campo **`amount`** es **importe** (no cantidad). Está definido como `Numeric(10,2)` y debe ser **> 0** (mín. sugerido `0.01`).
 
 ---
 
-## Requisitos
+## Requisitos (sin cambios)
 
 - **Node** ≥ 18 (ideal 20)
 - **npm** ≥ 9
 - **Python** 3.11 (o 3.10+)
 - **Git**
-- **Backend deps** (pinned):
-  - Flask **3.1.2**
-  - Flask‑SQLAlchemy **3.1.1** (SQLAlchemy **2.0.43**)
-  - Flask‑Migrate **4.1.0**
-  - Flask‑Cors **6.0.1**
-  - python‑dotenv **1.1.1**
-  - ruff **0.13.3**
 
 ---
 
-## Estructura de carpetas (actualizada)
+## Estructura de carpetas (actualizada en V2)
 
 ```
 / (repo raíz)
 ├─ frontend/                            # React + TS + Vite + Bootstrap + React Router 7
 │  ├─ src/
-│  │  ├─ App.tsx                        # Layout + <Outlet/>
-│  │  ├─ main.tsx                       # Router en modo declarativo
+│  │  ├─ App.tsx                        # Layout (Navbar/Footer) + <Outlet/>
+│  │  ├─ main.tsx                       # Router declarativo
 │  │  └─ pages/
 │  │     ├─ Users.tsx
 │  │     └─ Orders.tsx
 │  ├─ .env.example
 │  └─ package.json
-├─ backend/                             # Flask app factory + CORS + /health + modelos V1
+├─ backend/                             # Flask app factory + CORS + /health + API V2
 │  ├─ app/
-│  │  ├─ __init__.py                    # create_app() + registro CLI / errores
+│  │  ├─ __init__.py                    # + Swagger(app) (UI en /apidocs)
 │  │  ├─ config.py                      # Dev/Test/Prod
 │  │  ├─ extensions.py                  # db, migrate, cors
-│  │  ├─ errors.py                      # handlers JSON 404/500
-│  │  ├─ api/health.py                  # GET /health
+│  │  ├─ errors.py                      # helpers y handlers JSON
+│  │  ├─ api/
+│  │  │  ├─ health.py                   # GET /health
+│  │  │  ├─ users.py                    # POST/GET users, GET users/:id/orders
+│  │  │  └─ orders.py                   # POST/GET orders (incl. user)
 │  │  ├─ models/
-│  │  │  ├─ __init__.py                 # exporta User/Order
+│  │  │  ├─ __init__.py
 │  │  │  ├─ user.py
 │  │  │  └─ order.py
 │  │  ├─ seeds/seed_basic.py            # comando CLI: seed básico
 │  │  └─ cli.py                         # register_cli(app): agrega comandos (seed)
-│  ├─ migrations/                       # (autogenerado por Flask-Migrate)
+│  ├─ migrations/
 │  ├─ .env.example
-│  ├─ pyproject.toml                    # Configuración de Ruff
-│  ├─ requirements.txt
+│  ├─ pyproject.toml
+│  ├─ requirements.txt                  # incluye flasgger
 │  ├─ wsgi.py
-│  └─ package.json                      # scripts npm para backend
+│  └─ package.json
+├─ infra/
+│  └─ postman/                          # colección y environment
+│     ├─ fullstack-challenge.postman_collection.json
+│     └─ fullstack-challenge-local.postman_environment.json
 ├─ package.json                         # workspaces + scripts raíz (dev, lint, format)
 ├─ .gitignore
-└─ README.md                            # este archivo
+└─ README.md
 ```
 
 ---
 
-## Instalación (sin cambios respecto a V0)
+## Instalación
 
 1. **Instalar dependencias del monorepo**
 
@@ -101,56 +103,12 @@ source .venv/bin/activate
 # Windows (Git Bash)
 source .venv/Scripts/activate
 
-pip install -r requirements.txt
+pip install -r requirements.txt   # Asegúrate de tener flasgger instalado
 cp .env.example .env
 cd ..
 ```
 
 > ⚠️ **Windows**: activa siempre el _venv_ antes de ejecutar la API o scripts que invoquen `flask`.
-
----
-
-## Migraciones y base de datos (V1)
-
-> Ejecuta todo **dentro** del directorio `backend/` con el **venv activo**.
-
-### Inicializar (solo la primera vez)
-
-```bash
-flask --app app:create_app db init
-```
-
-### Generar migración de V1 y aplicar
-
-```bash
-flask --app app:create_app db migrate -m "V1: users & orders models, constraints"
-flask --app app:create_app db upgrade
-```
-
-> Se crea `app.db` (SQLite en dev) y las tablas `users` / `orders` con sus índices y restricciones.
-
----
-
-## Seed básico (V1)
-
-Comando CLI para insertar datos mínimos (idempotente simple):
-
-```bash
-flask --app app:create_app seed-basic
-```
-
-Qué crea:
-
-- Usuarios: **Ada Lovelace**, **Alan Turing** (emails únicos).
-- Pedidos: 3 registros de ejemplo asociados a esos usuarios.
-
-Verificación rápida en shell interactiva:
-
-```bash
-flask --app app:create_app shell
->>> from app.models import User, Order
->>> User.query.count(), Order.query.count()
-```
 
 ---
 
@@ -194,11 +152,50 @@ npm run dev
 
 ---
 
-## Verificación rápida
+## Documentación de API (Swagger)
 
-- `http://localhost:5000/health` → `{"status":"ok"}`
-- DB con tablas: `users`, `orders` (y `migrations` creada).
-- Seed ejecutado (opcional): conteos > 0.
+- Accede con el badge (arriba) o abre **`http://localhost:5000/apidocs`**.
+- Verás los grupos **Users** y **Orders** con parámetros, cuerpos y respuestas.
+- Podés ejecutar requests desde la UI.
+- **Deploy:** si publicas tu backend, cambia el enlace del badge a la URL pública (`https://tu-backend/apidocs`).
+
+---
+
+## Colección Postman (V2)
+
+### Archivos en el repo
+
+- **Colección:** [`infra/postman/fullstack-challenge.postman_collection.json`](infra/postman/fullstack-challenge.postman_collection.json)
+- **Environment local:** [`infra/postman/fullstack-challenge-local.postman_environment.json`](infra/postman/fullstack-challenge-local.postman_environment.json)
+
+### Importación en Postman
+
+1. **File → Import** y selecciona ambos archivos.
+2. En **Environments**, elige **“Fullstack Challenge – Local”** (define `{{baseUrl}}` = `http://localhost:5000`).
+
+### Orden sugerido de requests
+
+1. `Health / GET /health`
+2. `Users / POST /users (create)` → guarda `lastUserId` como variable de colección
+3. `Orders / POST /orders (create)` → usa `{{lastUserId}}` y **amount** (decimal), ej. `12.50`
+4. `Orders / GET /orders`
+5. `Users / GET /users/:id/orders`
+
+> **Notas:**
+>
+> - `POST /orders` valida que `amount` sea **número > 0**.
+> - Los listados aceptan `?page=` y `?limit=` (máx. 100).
+> - Los errores se devuelven con estructura `{"error": {"code","message"}}`.
+
+---
+
+## Verificación rápida (V2)
+
+- `GET /health` → `{"status": "ok"}`
+- `POST /users` → 201 con `{id, name, email, created_at}`
+- `POST /orders` → 201 con `{id, user_id, product_name, amount, created_at}` (`amount` **decimal**)
+- `GET /orders` → 200 con `items[]` que **incluyen `user`**
+- `GET /users/:id/orders` → 200 con `items[]` del usuario
 
 ---
 
@@ -243,31 +240,17 @@ npm run dev
 
 ---
 
-## Decisiones y validaciones (detalle técnico)
+## Changelog
 
-- **Email único + formato**
-  - `unique=True` e `index=True` en columna `email`.
-  - Normalización a **lowercase** y regex básica (`^[^@\s]+@[^@\s]+\.[^@\s]+$`) en `@validates("email")`.
-- **Precio (amount) positivo**
-  - `CheckConstraint("amount > 0", name="ck_orders_amount_positive")` en `Order`.
-- **Relación y borrado**
-  - `User.orders` con `cascade="all, delete-orphan"` y FK `ondelete="CASCADE"` en `Order`.
-- **Timestamps**
-  - `server_default=func.now()` en `created_at` (seteado por la base de datos).
-- **Ruff (0.13.3)**
-  - Config en `pyproject.toml` usando bloques `[tool.ruff]` y `[tool.ruff.lint]`.
-  - `ruff check app` y `ruff format app` como comandos principales.
-
----
-
-## Roadmap (siguientes versiones)
-
-- **V2**: endpoints requeridos (CRUDs mínimos), manejo de errores global y **Swagger/OpenAPI** + colección Postman/HTTP.
-- **V3**: UI mínima (forms/listas) con `fetch` nativo, loading/errors, responsive completo.
-- **V4**: Context API, React Hook Form + Zod, búsquedas y detalle de usuario.
-- **V5**: seeds ricos (Faker), export/import JSON.
-- **V6**: tests (pytest + Vitest/RTL) y CI (GitHub Actions).
-- **V7**: deploy (Render/Heroku + Vercel) y correlación simple de logs.
+- **V2**
+  - Endpoints Users/Orders con paginación y errores JSON.
+  - `amount` como **importe decimal** (`Numeric(10,2)`) con validación `> 0`.
+  - Swagger UI en `/apidocs` + **badge** en README.
+  - Colección Postman y Environment local en `infra/postman/`.
+- **V1**
+  - Modelos, migraciones, validaciones básicas y seed.
+- **V0**
+  - Setup monorepo, front y back mínimos, Ruff, `/health`.
 
 ---
 
