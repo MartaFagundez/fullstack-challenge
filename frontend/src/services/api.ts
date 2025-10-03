@@ -25,8 +25,8 @@ async function typedFetch<T>(
     let payload: ApiErrorPayload | undefined;
     try {
       payload = (await res.json()) as ApiErrorPayload;
-    } catch {
-      // ignore
+    } catch (error) {
+      console.error("Error parsing JSON response:", error);
     }
     const msg = payload?.error?.message || `HTTP ${res.status}`;
     throw new ApiError(msg, res.status, payload);
@@ -68,7 +68,7 @@ export function createOrder(data: {
   product_name: string;
   amount: number;
 }) {
-  // amount: "importe" (decimal). Asegúrate de mandar number
+  // amount: "importe" (decimal). Se debe enviar number.
   return typedFetch<Order>(`${API}/orders`, {
     method: "POST",
     body: JSON.stringify(data),
