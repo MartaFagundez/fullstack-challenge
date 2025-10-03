@@ -1,7 +1,9 @@
 import click
 from flask import current_app
+
 from ..extensions import db
-from ..models import User, Order
+from ..models import Order, User
+
 
 @click.command("seed-basic")
 def seed_basic():
@@ -16,10 +18,12 @@ def seed_basic():
         db.session.add_all([u1, u2])
         db.session.flush()  # para obtener ids
 
-        db.session.add_all([
-            Order(user_id=u1.id, product_name="Cuaderno A5", amount=125.0),
-            Order(user_id=u1.id, product_name="Lápiz HB", amount=19.9),
-            Order(user_id=u2.id, product_name="Regla 30cm", amount=57.5),
-        ])
+        db.session.add_all(
+            [
+                Order(user_id=u1.id, product_name="Cuaderno A5", amount=125.0),
+                Order(user_id=u1.id, product_name="Lápiz HB", amount=19.9),
+                Order(user_id=u2.id, product_name="Regla 30cm", amount=57.5),
+            ]
+        )
         db.session.commit()
         click.echo("Seed básico creado.")

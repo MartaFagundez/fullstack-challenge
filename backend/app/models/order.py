@@ -1,5 +1,7 @@
-from sqlalchemy import func, CheckConstraint, ForeignKey
+from sqlalchemy import CheckConstraint, ForeignKey, func
+
 from ..extensions import db
+
 
 class Order(db.Model):
     __tablename__ = "orders"
@@ -11,7 +13,7 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     product_name = db.Column(db.String(200), nullable=False)
-    amount = db.Column(db.Numeric(10,2), nullable=False)
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
     created_at = db.Column(db.DateTime, server_default=func.now(), nullable=False)
 
     user = db.relationship("User", back_populates="orders")

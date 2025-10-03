@@ -1,9 +1,12 @@
 import re
-from sqlalchemy.orm import validates
+
 from sqlalchemy import func
+from sqlalchemy.orm import validates
+
 from ..extensions import db
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
 
 class User(db.Model):
     __tablename__ = "users"
