@@ -1,6 +1,7 @@
 from flask import Flask
 
 from .api.health import bp as health_bp
+from .cli import register_cli
 from .config import load_config
 from .errors import register_error_handlers
 from .extensions import cors, db, migrate
@@ -24,4 +25,5 @@ def create_app():
     # Errores JSON
     register_error_handlers(app)
 
+    register_cli(app)
     return app
