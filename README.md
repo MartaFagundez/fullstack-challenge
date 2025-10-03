@@ -1,22 +1,23 @@
-# Fullstack Challenge – Monorepo (V0)
+# Fullstack Challenge – Monorepo (V1)
 
-> **Estado:** V0 completado (base de desarrollo).  
+> **Estado:** V1 completado (modelos, migraciones, validaciones y seed básico).  
 > **Meta de proyecto:** llegar hasta V7 con API, UI, extras y deploy.  
-> **Stack:** Monorepo (npm workspaces) · Frontend (React + TypeScript + Vite + Bootstrap) · Backend (Flask + SQLAlchemy + Flask‑Migrate) · Calidad (Ruff) · DX (ESLint/Prettier, concurrently).
+> **Stack:** Monorepo (npm workspaces) · Frontend (React + TypeScript + Vite + Bootstrap, React Router 7) · Backend (Flask + SQLAlchemy + Flask‑Migrate) · Calidad (Ruff) · DX (ESLint/Prettier, concurrently).
 
 ---
 
-## Contenido de V0
+## ¿Qué incluye la V1?
 
-- ✅ **Monorepo** con `npm workspaces` (carpetas `frontend/` y `backend/`).
-- ✅ **Frontend** creado con **Vite + React + TS** y **Bootstrap** (CSS + JS).
-- ✅ **Backend** con **Flask app factory**, CORS, manejadores de error JSON y endpoint `GET /health`.
-- ✅ **Ruff** como **único** linter/formatter para backend.
-- ✅ ESLint + Prettier en el frontend.
-- ✅ Scripts centralizados y **concurrency** (levanta API y Web con un solo comando).
-- ✅ Archivos `.env.example` (front y back).
+- ✅ **Modelos** `User` y `Order` con relación **1—N**.
+- ✅ **Validaciones** de negocio:
+  - `User.email` **único**, **normalizado a lowercase** y validado por **regex**.
+  - `Order.amount > 0` mediante **CheckConstraint**.
+- ✅ **Timestamps** (`created_at`) con `server_default=func.now()`.
+- ✅ **Migraciones** iniciales creadas y aplicadas (Flask‑Migrate).
+- ✅ **Seed básico** (CLI) con 2 usuarios y 3 pedidos.
+- ✅ Mantiene todo lo de **V0** (app factory, `/health`, CORS, Bootstrap en el front, Ruff, ESLint/Prettier, scripts de DX).
 
-> **No incluido a propósito en V0:** modelos/migraciones, endpoints de negocio, tests. Se agregan en versiones posteriores.
+> **No incluido todavía:** endpoints de negocio, Swagger, UI con formularios/listas, tests. Se agregará desde V2 en adelante.
 
 ---
 
@@ -26,73 +27,130 @@
 - **npm** ≥ 9
 - **Python** 3.11 (o 3.10+)
 - **Git**
+- **Backend deps** (pinned):
+  - Flask **3.1.2**
+  - Flask‑SQLAlchemy **3.1.1** (SQLAlchemy **2.0.43**)
+  - Flask‑Migrate **4.1.0**
+  - Flask‑Cors **6.0.1**
+  - python‑dotenv **1.1.1**
+  - ruff **0.13.3**
 
 ---
 
-## Estructura de carpetas
+## Estructura de carpetas (actualizada)
 
 ```
 / (repo raíz)
-├─ frontend/                  # React + TS + Vite + Bootstrap
+├─ frontend/                            # React + TS + Vite + Bootstrap + React Router 7
 │  ├─ src/
-│  │  ├─ App.tsx              # Layout base
-│  │  ├─ main.tsx             # Router + import Bootstrap
+│  │  ├─ App.tsx                        # Layout + <Outlet/>
+│  │  ├─ main.tsx                       # Router en modo declarativo
 │  │  └─ pages/
 │  │     ├─ Users.tsx
 │  │     └─ Orders.tsx
 │  ├─ .env.example
 │  └─ package.json
-├─ backend/                   # Flask app factory + CORS + /health
+├─ backend/                             # Flask app factory + CORS + /health + modelos V1
 │  ├─ app/
-│  │  ├─ __init__.py          # create_app()
-│  │  ├─ config.py            # Dev/Test/Prod
-│  │  ├─ extensions.py        # db, migrate, cors
-│  │  ├─ errors.py            # handlers JSON 404/500
-│  │  └─ api/health.py        # GET /health
+│  │  ├─ __init__.py                    # create_app() + registro CLI / errores
+│  │  ├─ config.py                      # Dev/Test/Prod
+│  │  ├─ extensions.py                  # db, migrate, cors
+│  │  ├─ errors.py                      # handlers JSON 404/500
+│  │  ├─ api/health.py                  # GET /health
+│  │  ├─ models/
+│  │  │  ├─ __init__.py                 # exporta User/Order
+│  │  │  ├─ user.py
+│  │  │  └─ order.py
+│  │  ├─ seeds/seed_basic.py            # comando CLI: seed básico
+│  │  └─ cli.py                         # register_cli(app): agrega comandos (seed)
+│  ├─ migrations/                       # (autogenerado por Flask-Migrate)
 │  ├─ .env.example
-│  ├─ pyproject.toml          # Configuración de Ruff
+│  ├─ pyproject.toml                    # Configuración de Ruff
 │  ├─ requirements.txt
 │  ├─ wsgi.py
-│  └─ package.json            # scripts npm para backend
-├─ package.json               # workspaces + scripts raiz (dev, lint, format)
+│  └─ package.json                      # scripts npm para backend
+├─ package.json                         # workspaces + scripts raíz (dev, lint, format)
 ├─ .gitignore
-└─ README.md                  # este archivo
+└─ README.md                            # este archivo
 ```
 
 ---
 
-## Instalación
+## Instalación (sin cambios respecto a V0)
 
-1. **Clonar e instalar dependencias del monorepo**
+1. **Instalar dependencias del monorepo**
 
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
 2. **Frontend**
-   - Variables de entorno:
-     ```bash
-     cp frontend/.env.example frontend/.env.local
-     # Ajusta si cambia el puerto o la URL del backend
-     ```
+
+```bash
+cp frontend/.env.example frontend/.env.local
+# Ajusta VITE_API_BASE_URL si cambias el puerto o la URL del backend
+```
 
 3. **Backend**
-   - Crear **virtualenv** e instalar dependencias:
 
-     ```bash
-     cd backend
-     python -m venv .venv
-     # macOS/Linux
-     source .venv/bin/activate
-     # Windows con Git Bash
-     source .venv/Scripts/activate
+```bash
+cd backend
+python -m venv .venv
+# macOS/Linux
+source .venv/bin/activate
+# Windows (Git Bash)
+source .venv/Scripts/activate
 
-     pip install -r requirements.txt
-     cp .env.example .env
-     cd ..
-     ```
+pip install -r requirements.txt
+cp .env.example .env
+cd ..
+```
 
-> ⚠️ **Importante (Windows):** activa siempre el _venv_ antes de ejecutar la API o los scripts npm que invoquen `flask`.
+> ⚠️ **Windows**: activa siempre el _venv_ antes de ejecutar la API o scripts que invoquen `flask`.
+
+---
+
+## Migraciones y base de datos (V1)
+
+> Ejecuta todo **dentro** del directorio `backend/` con el **venv activo**.
+
+### Inicializar (solo la primera vez)
+
+```bash
+flask --app app:create_app db init
+```
+
+### Generar migración de V1 y aplicar
+
+```bash
+flask --app app:create_app db migrate -m "V1: users & orders models, constraints"
+flask --app app:create_app db upgrade
+```
+
+> Se crea `app.db` (SQLite en dev) y las tablas `users` / `orders` con sus índices y restricciones.
+
+---
+
+## Seed básico (V1)
+
+Comando CLI para insertar datos mínimos (idempotente simple):
+
+```bash
+flask --app app:create_app seed-basic
+```
+
+Qué crea:
+
+- Usuarios: **Ada Lovelace**, **Alan Turing** (emails únicos).
+- Pedidos: 3 registros de ejemplo asociados a esos usuarios.
+
+Verificación rápida en shell interactiva:
+
+```bash
+flask --app app:create_app shell
+>>> from app.models import User, Order
+>>> User.query.count(), Order.query.count()
+```
 
 ---
 
@@ -106,33 +164,29 @@
 cd backend
 # macOS/Linux
 source .venv/bin/activate
-# Windows con Git Bash
+# Windows (Git Bash)
 source .venv/Scripts/activate
 cd ..
 ```
 
-2. En la **raíz del repo** ejecuta:
+2. En la **raíz del repo**:
 
 ```bash
 npm run dev
 ```
 
-Esto lanza:
-
-- **API** en `http://localhost:5000`
-- **Web** en `http://localhost:5173`
+- **API**: `http://localhost:5000`
+- **Web**: `http://localhost:5173`
 
 ### Opción B — Dos terminales
 
-- Terminal 1 (backend):
-
+- Backend:
   ```bash
   cd backend
   source .venv/Scripts/activate      # o source .venv/bin/activate
   npm run api
   ```
-
-- Terminal 2 (frontend):
+- Frontend:
   ```bash
   cd frontend
   npm run dev
@@ -142,15 +196,15 @@ Esto lanza:
 
 ## Verificación rápida
 
-- Abre `http://localhost:5173` → verás el layout base con Navbar y el estado de la API.
-- La _badge_ “API” debería indicar **ok** (hace ping a `GET /health`).
-- `http://localhost:5000/health` → responde `{"status":"ok"}`.
+- `http://localhost:5000/health` → `{"status":"ok"}`
+- DB con tablas: `users`, `orders` (y `migrations` creada).
+- Seed ejecutado (opcional): conteos > 0.
 
 ---
 
 ## Scripts útiles
 
-**Raíz (monorepo) – `package.json`**
+**Raíz – `package.json`**
 
 ```jsonc
 {
@@ -189,29 +243,26 @@ Esto lanza:
 
 ---
 
-## Explicación de la configuración (el “por qué”)
+## Decisiones y validaciones (detalle técnico)
 
-- **npm workspaces**: gestionan _multi‑paquetes_ en un solo repo. Permiten ejecutar scripts con `-w <workspace>` y compartir `node_modules` en la raíz → menos fricción.
-- **`private: true`**: evita publicar accidentalmente el monorepo a npm.
-- **`concurrently`**: lanza **API** y **Web** con un único `npm run dev` desde la raíz.
-- **Bootstrap sin react‑bootstrap**: importamos CSS y el **bundle JS** nativo (`bootstrap.bundle.min.js`) para que funcionen los componentes interactivos (collapse, dropdown, etc.). El marcado se maneja con **clases** de Bootstrap.
-- **Flask app factory**: `create_app()` configura extensiones y blueprints por entorno (Dev/Test/Prod). Facilita testing y deploy.
-- **CORS**: habilitado mediante `Flask-Cors` con origen por defecto `http://localhost:5173` (ajustable vía `CORS_ORIGINS`).
-- **Ruff**: única herramienta de estilo/calidad en backend.
-  - En `pyproject.toml` se establecen:
-    - `select = ["E","F","I"]` → reglas de **pycodestyle**, **Pyflakes** y **isort** (import sorting).
-    - `ruff check app` para **linting**, `ruff format app` para **formatear**.
-- **Variables de entorno**:
-  - **Frontend**: `VITE_API_BASE_URL` para apuntar al backend en dev/prod.
-  - **Backend**: `FLASK_ENV`, `DATABASE_URL`, `CORS_ORIGINS`, `SECRET_KEY`.
-- **Endpoint `/health`**: verificación rápida de disponibilidad del backend (usado por la UI en la Navbar).
+- **Email único + formato**
+  - `unique=True` e `index=True` en columna `email`.
+  - Normalización a **lowercase** y regex básica (`^[^@\s]+@[^@\s]+\.[^@\s]+$`) en `@validates("email")`.
+- **Precio (amount) positivo**
+  - `CheckConstraint("amount > 0", name="ck_orders_amount_positive")` en `Order`.
+- **Relación y borrado**
+  - `User.orders` con `cascade="all, delete-orphan"` y FK `ondelete="CASCADE"` en `Order`.
+- **Timestamps**
+  - `server_default=func.now()` en `created_at` (seteado por la base de datos).
+- **Ruff (0.13.3)**
+  - Config en `pyproject.toml` usando bloques `[tool.ruff]` y `[tool.ruff.lint]`.
+  - `ruff check app` y `ruff format app` como comandos principales.
 
 ---
 
-## Roadmap (próximas versiones)
+## Roadmap (siguientes versiones)
 
-- **V1**: modelos `User`/`Order`, migraciones, validaciones (`email` único/regex, `amount > 0`), seeds.
-- **V2**: endpoints CRUD requeridos + errores globales + Swagger.
+- **V2**: endpoints requeridos (CRUDs mínimos), manejo de errores global y **Swagger/OpenAPI** + colección Postman/HTTP.
 - **V3**: UI mínima (forms/listas) con `fetch` nativo, loading/errors, responsive completo.
 - **V4**: Context API, React Hook Form + Zod, búsquedas y detalle de usuario.
 - **V5**: seeds ricos (Faker), export/import JSON.
@@ -222,9 +273,10 @@ Esto lanza:
 
 ## Solución de problemas (FAQ)
 
-- **La API no arranca / Flask no se encuentra** → activa el virtualenv antes de `npm run dev` o `npm run api -w backend`.
-- **CORS al llamar la API** → verifica `CORS_ORIGINS` en el `.env` del backend y que apunte al origen de tu frontend (`http://localhost:5173`).
-- **Puertos ocupados** → cambia `--port` en el script del backend o el puerto de Vite (`--port 5174`).
+- **Flask no se encuentra / API no arranca** → activa el virtualenv antes de `npm run dev` o `npm run api -w backend`.
+- **CORS** → revisa `CORS_ORIGINS` en `backend/.env` (por defecto `http://localhost:5173`).
+- **Puertos ocupados** → cambia `--port` en el script de backend o el puerto de Vite (`--port 5174`).
+- **Recrear DB en dev** → `rm backend/app.db && flask --app app:create_app db upgrade && flask --app app:create_app seed-basic`.
 
 ---
 
