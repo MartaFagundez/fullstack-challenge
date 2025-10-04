@@ -67,7 +67,7 @@ def create_order():
         "id": order.id,
         "user_id": order.user_id,
         "product_name": order.product_name,
-        "amount": order.amount,
+        "amount": float(order.amount),
         "created_at": order.created_at.isoformat()
     }), 201
 
@@ -95,7 +95,7 @@ def list_orders():
         "id": o.id,
         "user_id": o.user_id,
         "product_name": o.product_name,
-        "amount": o.amount,
+        "amount": float(o.amount),
         "created_at": o.created_at.isoformat(),
         "user": {
             "id": o.user.id,

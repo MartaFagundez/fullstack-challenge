@@ -1,25 +1,25 @@
-# Fullstack Challenge – Monorepo (V2) [![API Docs](https://img.shields.io/badge/Swagger-OpenAPI%203-blue?logo=swagger)](http://localhost:5000/apidocs)
+# Fullstack Challenge – Monorepo (V3) [![API Docs](https://img.shields.io/badge/Swagger-OpenAPI%203-blue?logo=swagger)](http://localhost:5000/apidocs)
 
-> **Estado:** V2 completado (endpoints, manejo de errores, paginación, Swagger y colección Postman).  
+> **Estado:** V3 completado (UI mínima: formularios y listas para Usuarios y Órdenes).  
 > **Meta de proyecto:** llegar hasta V7 con API, UI, extras y deploy.  
-> **Stack:** Monorepo (npm workspaces) · Frontend (React + TypeScript + Vite + Bootstrap, React Router 7) · Backend (Flask + SQLAlchemy + Flask-Migrate + Flasgger) · Calidad (Ruff) · DX (ESLint/Prettier, concurrently).
+> **Stack:** Monorepo (npm workspaces) · Frontend (React + TypeScript + Vite + Bootstrap, React Router 7) · Backend (Flask + SQLAlchemy + Flask‑Migrate + Flasgger) · Calidad (Ruff) · DX (ESLint/Prettier, concurrently).
 
 ---
 
-## ¿Qué incluye la V2?
+## ¿Qué incluye la V3?
 
-- ✅ **Endpoints** implementados:
-  - `POST /users` (crear usuario)
-  - `GET /users` (listar con paginación)
-  - `GET /users/<id>/orders` (pedidos de un usuario)
-  - `POST /orders` (crear pedido)
-  - `GET /orders` (listar con paginación e **incluye datos del usuario**)
-- ✅ **Manejo de errores JSON** consistente (`{"error": {"code","message","details?"}}`) con códigos `400/404/409/422/500`.
-- ✅ **Paginación** común (`page`, `limit`, tope 100) y metadatos `{ total, pages }` en listados.
-- ✅ **Swagger UI** accesible en **`/apidocs`** (via **Flasgger**)
-- ✅ **Colección Postman** + **Environment local** (variable `baseUrl`).
+- ✅ **UI mínima usable** (responsive, Bootstrap).
+- ✅ **Usuarios**
+  - Formulario para crear usuario (name, email).
+  - Tabla paginada para listar usuarios.
+- ✅ **Órdenes**
+  - Formulario para crear orden (usuario, producto, **importe**).
+  - Tabla paginada con join de usuario (muestra nombre y email).
+- ✅ **Cliente HTTP con `fetch` tipado** + **tipos compartidos**.
+- ✅ **Manejo de estados**: loading y errores visibles (alerts/spinners).
+- ✅ Se mantiene todo lo de **V2**: endpoints, errores JSON, paginación, Swagger y Postman.
 
-> **Importante:** en `Order`, el campo **`amount`** es **importe** (no cantidad). Está definido como `Numeric(10,2)` y debe ser **> 0** (mín. sugerido `0.01`).
+> **Importante:** en `Order`, el campo **`amount`** representa el **importe** (decimal). En la base está como `Numeric(10,2)` y debe ser **> 0**.
 
 ---
 
@@ -32,7 +32,7 @@
 
 ---
 
-## Estructura de carpetas (actualizada en V2)
+## Estructura de carpetas (actualizada en V3)
 
 ```
 / (repo raíz)
@@ -40,9 +40,25 @@
 │  ├─ src/
 │  │  ├─ App.tsx                        # Layout (Navbar/Footer) + <Outlet/>
 │  │  ├─ main.tsx                       # Router declarativo
+│  │  ├─ types/
+│  │  │  └─ api.ts                      # Tipos compartidos de la API
+│  │  ├─ services/
+│  │  │  └─ api.ts                      # Cliente fetch tipado
+│  │  ├─ utils/
+│  │  │  └─ number.ts                   # parse/format del importe
+│  │  ├─ components/
+│  │  │  ├─ feedback/
+│  │  │  │  ├─ InlineError.tsx
+│  │  │  │  └─ SmallSpinner.tsx
+│  │  │  ├─ forms/
+│  │  │  │  ├─ CreateUserForm.tsx
+│  │  │  │  └─ CreateOrderForm.tsx
+│  │  │  └─ tables/
+│  │  │     ├─ UsersTable.tsx
+│  │  │     └─ OrdersTable.tsx
 │  │  └─ pages/
-│  │     ├─ Users.tsx
-│  │     └─ Orders.tsx
+│  │     ├─ Users.tsx                   # compone form + table
+│  │     └─ Orders.tsx                  # compone form + table
 │  ├─ .env.example
 │  └─ package.json
 ├─ backend/                             # Flask app factory + CORS + /health + API V2
@@ -58,13 +74,13 @@
 │  │  ├─ models/
 │  │  │  ├─ __init__.py
 │  │  │  ├─ user.py
-│  │  │  └─ order.py
-│  │  ├─ seeds/seed_basic.py            # comando CLI: seed básico
-│  │  └─ cli.py                         # register_cli(app): agrega comandos (seed)
+│  │  │  └─ order.py                    # amount = Numeric(10,2) (importe)
+│  │  ├─ seeds/seed_basic.py
+│  │  └─ cli.py
 │  ├─ migrations/
 │  ├─ .env.example
 │  ├─ pyproject.toml
-│  ├─ requirements.txt                  # incluye flasgger
+│  ├─ requirements.txt
 │  ├─ wsgi.py
 │  └─ package.json
 ├─ infra/
@@ -103,7 +119,7 @@ source .venv/bin/activate
 # Windows (Git Bash)
 source .venv/Scripts/activate
 
-pip install -r requirements.txt   # Asegúrate de tener flasgger instalado
+pip install -r requirements.txt
 cp .env.example .env
 cd ..
 ```
@@ -155,13 +171,12 @@ npm run dev
 ## Documentación de API (Swagger)
 
 - Accede con el badge (arriba) o abre **`http://localhost:5000/apidocs`**.
-- Verás los grupos **Users** y **Orders** con parámetros, cuerpos y respuestas.
+- Grupos **Users** y **Orders** con parámetros, cuerpos y respuestas.
 - Podés ejecutar requests desde la UI.
-- **Deploy:** si publicas tu backend, cambia el enlace del badge a la URL pública (`https://tu-backend/apidocs`).
 
 ---
 
-## Colección Postman (V2)
+## Colección Postman
 
 ### Archivos en el repo
 
@@ -177,25 +192,9 @@ npm run dev
 
 1. `Health / GET /health`
 2. `Users / POST /users (create)` → guarda `lastUserId` como variable de colección
-3. `Orders / POST /orders (create)` → usa `{{lastUserId}}` y **amount** (decimal), ej. `12.50`
+3. `Orders / POST /orders (create)` → usa `{{lastUserId}}` y **importe** (decimal), ej. `12.50`
 4. `Orders / GET /orders`
 5. `Users / GET /users/:id/orders`
-
-> **Notas:**
->
-> - `POST /orders` valida que `amount` sea **número > 0**.
-> - Los listados aceptan `?page=` y `?limit=` (máx. 100).
-> - Los errores se devuelven con estructura `{"error": {"code","message"}}`.
-
----
-
-## Verificación rápida (V2)
-
-- `GET /health` → `{"status": "ok"}`
-- `POST /users` → 201 con `{id, name, email, created_at}`
-- `POST /orders` → 201 con `{id, user_id, product_name, amount, created_at}` (`amount` **decimal**)
-- `GET /orders` → 200 con `items[]` que **incluyen `user`**
-- `GET /users/:id/orders` → 200 con `items[]` del usuario
 
 ---
 
@@ -242,11 +241,10 @@ npm run dev
 
 ## Changelog
 
+- **V3**
+  - UI con formularios y tablas (Usuarios / Órdenes), `fetch` tipado, manejo de loading/errores, responsive.
 - **V2**
-  - Endpoints Users/Orders con paginación y errores JSON.
-  - `amount` como **importe decimal** (`Numeric(10,2)`) con validación `> 0`.
-  - Swagger UI en `/apidocs` + **badge** en README.
-  - Colección Postman y Environment local en `infra/postman/`.
+  - Endpoints Users/Orders con paginación y errores JSON. Swagger en `/apidocs`. Colección Postman.
 - **V1**
   - Modelos, migraciones, validaciones básicas y seed.
 - **V0**
