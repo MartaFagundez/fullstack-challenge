@@ -12,6 +12,7 @@ import "./index.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 import App from "./App.tsx";
+import Home from "./pages/Home.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -21,6 +22,7 @@ createRoot(document.getElementById("root")!).render(
           {/* Layout principal */}
           <Route path="/" element={<App />}>
             {/* Rutas hijas */}
+            <Route index element={<Home />} />
             <Route path="users" element={<Users />} />
             <Route path="orders" element={<Orders />} />
           </Route>
