@@ -49,7 +49,7 @@
 
 ## Enfoque y buenas prácticas
 
-- **Iterativo y versionado**: V0→V6.1 con **tags** y ramas feature → PR → `dev` (por defecto) → `main` (protegida).
+- **Desarrollo terativo y versionado**: V0→V6.1 con **tags** y ramas feature → PR → `dev` (por defecto) → `main` (protegida).
 - **Simplicidad primero**: `fetch` nativo, Context mínimo, sin optimizaciones prematuras.
 - **Coherencia de errores**: backend responde `{"error":{code,message}}`.
 - **DX**: `npm run dev` lanza API+Web; linters (Ruff/ESLint), scripts claros, README por versión.
