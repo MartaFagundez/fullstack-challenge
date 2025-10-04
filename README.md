@@ -43,6 +43,7 @@
 - **Coherencia de errores**: backend responde `{"error":{code,message}}`.
 - **DX**: `npm run dev` lanza API+Web; linters (Ruff/ESLint), scripts claros, README por versión.
 - **UI**: interfaz responsive, componentes accesibles; formularios con feedback y toasts.
+- **Documentación**: Swagger (Flasgger) y colección Postman lista para probar.
 
 ---
 
