@@ -51,8 +51,14 @@ export function createUser(data: { name: string; email: string }) {
   });
 }
 
-export function listUsers(params: { page?: number; limit?: number } = {}) {
-  const query = qs({ page: params.page ?? 1, limit: params.limit ?? 10 });
+export function listUsers(
+  params: { page?: number; limit?: number; q?: string } = {}
+) {
+  const query = qs({
+    page: params.page ?? 1,
+    limit: params.limit ?? 10,
+    q: params.q,
+  });
   return typedFetch<Paginated<User>>(`${API}/users?${query}`);
 }
 
@@ -75,7 +81,13 @@ export function createOrder(data: {
   });
 }
 
-export function listOrders(params: { page?: number; limit?: number } = {}) {
-  const query = qs({ page: params.page ?? 1, limit: params.limit ?? 10 });
+export function listOrders(
+  params: { page?: number; limit?: number; q?: string } = {}
+) {
+  const query = qs({
+    page: params.page ?? 1,
+    limit: params.limit ?? 10,
+    q: params.q,
+  });
   return typedFetch<Paginated<Order>>(`${API}/orders?${query}`);
 }
