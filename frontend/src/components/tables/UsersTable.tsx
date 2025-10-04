@@ -3,10 +3,12 @@ import { listUsers } from "../../services/api";
 import type { User } from "../../types/api";
 import SmallSpinner from "../feedback/SmallSpinner";
 import InlineError from "../feedback/InlineError";
+import DebouncedInput from "../inputs/DebouncedInput";
 
 export default function UsersTable() {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+  const [q, setQ] = useState("");
   const [data, setData] = useState<{
     items: User[];
     total: number;
@@ -21,7 +23,7 @@ export default function UsersTable() {
     setError(null);
     (async () => {
       try {
-        const res = await listUsers({ page, limit });
+        const res = await listUsers({ page, limit, q });
         if (!cancel)
           setData({ items: res.items, total: res.total, pages: res.pages });
       } catch (e) {
@@ -34,13 +36,22 @@ export default function UsersTable() {
     return () => {
       cancel = true;
     };
-  }, [page, limit]);
+  }, [page, limit, q]);
 
   return (
     <div className="card">
       <div className="card-header d-flex justify-content-between align-items-center">
         <h6 className="mb-0">Usuarios</h6>
-        {loading && <SmallSpinner />}
+        <div className="ms-auto d-flex">
+          {loading && <SmallSpinner />}
+          <div style={{ minWidth: 240 }}>
+            <DebouncedInput
+              value={q}
+              onChange={setQ}
+              placeholder="Buscar nombre o email..."
+            />
+          </div>
+        </div>
       </div>
       <div className="table-responsive">
         <table className="table table-sm table-striped align-middle mb-0">
