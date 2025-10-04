@@ -1,43 +1,27 @@
-import { useState } from "react";
-import { ApiError, createUser } from "../../services/api";
-import InlineError from "../feedback/InlineError";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CreateUserSchema, type CreateUserInput } from "../../schemas";
+import { useUsers } from "../../hooks/useUsers";
 
-export default function CreateUserForm({
-  onCreated,
-}: {
-  onCreated?: () => void;
-}) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export default function CreateUserForm() {
+  const { createUser } = useUsers();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<CreateUserInput>({
+    resolver: zodResolver(CreateUserSchema),
+    mode: "onChange",
+  });
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    if (!name.trim() || !email.trim()) {
-      setError("Name y email son obligatorios");
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      await createUser({
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-      });
-      setName("");
-      setEmail("");
-      onCreated?.();
-    } catch (err) {
-      if (err instanceof ApiError)
-        setError(err.payload?.error?.message ?? err.message);
-      else setError("Error inesperado");
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  const onSubmit = handleSubmit(async (data) => {
+    await createUser({
+      name: data.name.trim(),
+      email: data.email.trim().toLowerCase(),
+    });
+    reset();
+  });
 
   return (
     <form onSubmit={onSubmit} className="card p-3 mb-4">
@@ -47,31 +31,31 @@ export default function CreateUserForm({
         <div className="col-md-6">
           <label className="form-label">Nombre</label>
           <input
-            className="form-control"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            className={`form-control ${errors.name ? "is-invalid" : ""}`}
+            {...register("name")}
             placeholder="Ada Lovelace"
-            required
           />
+          {errors.name && (
+            <div className="invalid-feedback">{errors.name.message}</div>
+          )}
         </div>
         <div className="col-md-6">
           <label className="form-label">Email</label>
           <input
             type="email"
-            className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            className={`form-control ${errors.email ? "is-invalid" : ""}`}
+            {...register("email")}
             placeholder="ada@example.com"
-            required
           />
+          {errors.email && (
+            <div className="invalid-feedback">{errors.email.message}</div>
+          )}
         </div>
       </div>
 
-      {error && <InlineError message={error} />}
-
       <div className="mt-3">
-        <button className="btn btn-primary" disabled={submitting}>
-          {submitting ? "Creando…" : "Crear usuario"}
+        <button className="btn btn-primary" disabled={isSubmitting}>
+          {isSubmitting ? "Creando…" : "Crear usuario"}
         </button>
       </div>
     </form>

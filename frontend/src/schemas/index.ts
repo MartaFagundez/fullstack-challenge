@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-// Utilidad: aceptar coma o punto y devolver number
-const parseDecimal = (v: unknown) => {
-  if (typeof v === "number") return v;
-  if (typeof v !== "string") return NaN;
-  const n = Number(v.trim().replace(",", "."));
-  return Number.isNaN(n) ? NaN : n;
-};
+// // Utilidad: aceptar coma o punto y devolver number
+// const parseDecimal = (v: unknown) => {
+//   if (typeof v === "number") return v;
+//   if (typeof v !== "string") return NaN;
+//   const n = Number(v.trim().replace(",", "."));
+//   return Number.isNaN(n) ? NaN : n;
+// };
 
 export const CreateUserSchema = z.object({
   name: z.string().trim().min(2, "El nombre es muy corto").max(120),
@@ -22,9 +22,6 @@ export const CreateOrderSchema = z.object({
     .min(2, "Nombre de producto muy corto")
     .max(200),
   // amount = "importe" (decimal), mínimo > 0
-  amount: z.preprocess(
-    parseDecimal,
-    z.number().positive("El importe debe ser mayor a 0")
-  ),
+  amount: z.coerce.number<string>().positive("El importe debe ser mayor a 0"),
 });
 export type CreateOrderInput = z.infer<typeof CreateOrderSchema>;

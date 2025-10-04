@@ -1,73 +1,48 @@
-import { useEffect, useState } from "react";
-import { ApiError, createOrder, listUsers } from "../../services/api";
-import InlineError from "../feedback/InlineError";
-import { parseAmount } from "../../utils/number";
-import type { User } from "../../types/api";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CreateOrderSchema } from "../../schemas";
+import { useUsers } from "../../hooks/useUsers";
+import { createOrder } from "../../services/api";
+import { useToast } from "../../hooks/useToast";
 
 export default function CreateOrderForm({
   onCreated,
 }: {
   onCreated?: () => void;
 }) {
-  const [users, setUsers] = useState<User[]>([]);
-  const [userId, setUserId] = useState<number | "">("");
-  const [productName, setProductName] = useState("");
-  const [amountStr, setAmountStr] = useState(""); // aceptará coma o punto
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { getUsers, cachedOptions } = useUsers();
+  const { push } = useToast();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    setValue,
+  } = useForm({
+    resolver: zodResolver(CreateOrderSchema),
+    mode: "onChange",
+  });
 
   useEffect(() => {
-    // Traemos la primera página de usuarios para el select (en V4 cachearemos)
-    (async () => {
-      setLoadingUsers(true);
-      try {
-        const res = await listUsers({ page: 1, limit: 50 });
-        setUsers(res.items);
-      } catch (error) {
-        console.error("Failed to load users:", error);
-        setError("Unable to load users. Please refresh the page.");
-      } finally {
-        setLoadingUsers(false);
-      }
-    })();
-  }, []);
+    void getUsers(1, 50);
+  }, [getUsers]); // precarga opciones
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    const amount = parseAmount(amountStr);
-    if (!userId || !productName.trim() || amount === null) {
-      setError(
-        "Todos los campos son obligatorios y el importe debe ser un número válido."
-      );
-      return;
-    }
-    if (amount <= 0) {
-      setError("El importe debe ser mayor a 0.");
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      await createOrder({
-        user_id: Number(userId),
-        product_name: productName.trim(),
-        amount: amount, // number
-      });
-      setUserId("");
-      setProductName("");
-      setAmountStr("");
-      onCreated?.();
-    } catch (err) {
-      if (err instanceof ApiError)
-        setError(err.payload?.error?.message ?? err.message);
-      else setError("Error inesperado");
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  const onSubmit = handleSubmit(async (data) => {
+    await createOrder({
+      user_id: data.user_id,
+      product_name: data.product_name.trim(),
+      amount: data.amount, // number (importe)
+    });
+    push({
+      variant: "success",
+      title: "Orden creada",
+      message: `${data.product_name}`,
+    });
+    reset();
+    onCreated?.();
+  });
 
   return (
     <form onSubmit={onSubmit} className="card p-3 mb-4">
@@ -77,56 +52,64 @@ export default function CreateOrderForm({
         <div className="col-md-4">
           <label className="form-label">Usuario</label>
           <select
-            className="form-select"
-            value={userId}
-            onChange={(e) =>
-              setUserId(e.target.value ? Number(e.target.value) : "")
-            }
-            disabled={loadingUsers}
-            required
+            className={`form-select ${errors.user_id ? "is-invalid" : ""}`}
+            {...register("user_id", { valueAsNumber: true })}
+            onChange={(e) => setValue("user_id", Number(e.target.value))}
+            defaultValue=""
           >
-            <option value="">Selecciona un usuario…</option>
-            {users.map((u) => (
+            <option value="" disabled>
+              Selecciona un usuario…
+            </option>
+            {cachedOptions.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.name} — {u.email}
               </option>
             ))}
           </select>
+          {errors.user_id && (
+            <div className="invalid-feedback">{errors.user_id.message}</div>
+          )}
         </div>
 
         <div className="col-md-5">
           <label className="form-label">Producto</label>
           <input
-            className="form-control"
-            value={productName}
-            onChange={(e) => setProductName(e.target.value)}
+            className={`form-control ${errors.product_name ? "is-invalid" : ""}`}
+            {...register("product_name")}
             placeholder="Cuaderno A4"
-            required
           />
+          {errors.product_name && (
+            <div className="invalid-feedback">
+              {errors.product_name.message}
+            </div>
+          )}
         </div>
 
         <div className="col-md-3">
           <label className="form-label">Importe</label>
           <input
             inputMode="decimal"
-            className="form-control"
-            value={amountStr}
-            onChange={(e) => setAmountStr(e.target.value)}
-            placeholder="12.50"
-            // sin 'type=number' para permitir coma; parseamos a mano
-            required
+            className={`form-control ${errors.amount ? "is-invalid" : ""}`}
+            {...register("amount", {
+              setValueAs: (value) => {
+                if (typeof value === "string") {
+                  return parseFloat(value.replace(",", "."));
+                }
+                return value;
+              },
+            })}
+            placeholder="12,50 o 12.50"
           />
-          <div className="form-text">
-            Usa coma o punto para decimales (p. ej., 12,50 o 12.50)
-          </div>
+          {errors.amount && (
+            <div className="invalid-feedback">{errors.amount.message}</div>
+          )}
+          <div className="form-text">Usa coma o punto para decimales</div>
         </div>
       </div>
 
-      {error && <InlineError message={error} />}
-
       <div className="mt-3">
-        <button className="btn btn-primary" disabled={submitting}>
-          {submitting ? "Creando…" : "Crear orden"}
+        <button className="btn btn-primary" disabled={isSubmitting}>
+          {isSubmitting ? "Creando…" : "Crear orden"}
         </button>
       </div>
     </form>
