@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router";
 
 import ToastProvider from "./context/ToastProvider";
+import UsersProvider from "./context/UsersProvider.tsx";
 
 import Users from "./pages/Users.tsx";
 import Orders from "./pages/Orders.tsx";
@@ -17,14 +18,16 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <ToastProvider>
-        <Routes>
-          {/* Layout principal */}
-          <Route path="/" element={<App />}>
-            {/* Rutas hijas */}
-            <Route path="users" element={<Users />} />
-            <Route path="orders" element={<Orders />} />
-          </Route>
-        </Routes>
+        <UsersProvider>
+          <Routes>
+            {/* Layout principal */}
+            <Route path="/" element={<App />}>
+              {/* Rutas hijas */}
+              <Route path="users" element={<Users />} />
+              <Route path="orders" element={<Orders />} />
+            </Route>
+          </Routes>
+        </UsersProvider>
       </ToastProvider>
     </BrowserRouter>
   </StrictMode>
