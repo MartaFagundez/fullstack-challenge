@@ -1,0 +1,25 @@
+services:
+  - name: fullstack-backend
+    type: web
+    env: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT wsgi:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: CORS_ORIGINS
+        value: https://fullstack-frontend.onrender.com # ajusta luego
+      - key: DATABASE_URL
+        value: sqlite:///app.db
+
+  - name: fullstack-frontend
+    type: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://fullstack-backend.onrender.com # ajusta luego
