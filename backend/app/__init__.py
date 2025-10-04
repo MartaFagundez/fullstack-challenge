@@ -3,6 +3,7 @@ from flask import Flask
 from .api.health import bp as health_bp
 from .api.orders import bp as orders_bp
 from .api.users import bp as users_bp
+from .api.io import bp as io_bp
 from .cli import register_cli
 from .config import load_config
 from .errors import register_error_handlers
@@ -28,6 +29,7 @@ def create_app():
     app.register_blueprint(health_bp)
     app.register_blueprint(orders_bp)
     app.register_blueprint(users_bp)
+    app.register_blueprint(io_bp)
 
     # Importa modelos para que Flask-Migrate los detecte
     from .models import order, user  # noqa: F401

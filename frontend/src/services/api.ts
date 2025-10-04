@@ -91,3 +91,34 @@ export function listOrders(
   });
   return typedFetch<Paginated<Order>>(`${API}/orders?${query}`);
 }
+
+// ---- EXPORT
+export async function exportUsers(): Promise<{ items: User[] }> {
+  return typedFetch(`${API}/export/users`);
+}
+export async function exportOrders(): Promise<{ items: Order[] }> {
+  return typedFetch(`${API}/export/orders`);
+}
+export async function exportAll(): Promise<{ users: User[]; orders: Order[] }> {
+  return typedFetch(`${API}/export/all`);
+}
+
+// ---- IMPORT
+export async function importUsers(items: User[]) {
+  return typedFetch<{ created: number; skipped: number }>(
+    `${API}/import/users`,
+    {
+      method: "POST",
+      body: JSON.stringify({ items }),
+    }
+  );
+}
+export async function importOrders(items: Order[]) {
+  return typedFetch<{ created: number; skipped: number }>(
+    `${API}/import/orders`,
+    {
+      method: "POST",
+      body: JSON.stringify({ items }),
+    }
+  );
+}
