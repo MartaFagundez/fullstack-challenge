@@ -1,10 +1,16 @@
 {
   "info": {
-    "_postman_id": "6705140c-f442-4511-b6a5-56efc78f0fcb",
-    "name": "Fullstack Challenge API",
+    "_postman_id": "a3a775a3-057b-4f79-9f9f-29dbeb300540",
+    "name": "Fullstack Challenge API (V4) – Simple",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Colección Postman para la API (V2). Incluye endpoints, ejemplos y tests.\nUsa la variable baseUrl (por defecto http://localhost:5000)."
+    "description": "Colección Postman para la API (V4) sin scripts de pre-request.\nUsa {{baseUrl}} para la base y un path variable :userId en /users/:userId/orders.\nEdita manualmente q, user_id/amount y :userId en cada request."
   },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    }
+  ],
   "item": [
     {
       "name": "Health",
@@ -30,9 +36,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test('status ok', function () { pm.expect(json.status).to.eql('ok'); });"
+                  "pm.test('status ok', () => pm.expect(json.status).to.eql('ok'));"
                 ]
               }
             }
@@ -65,7 +71,8 @@
               "path": [
                 "users"
               ]
-            }
+            },
+            "description": "Edita el body con el nombre/email que quieras crear."
           },
           "event": [
             {
@@ -73,16 +80,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
                   "const json = pm.response.json();",
-                  "pm.test('Tiene id, name, email, created_at', function () {",
+                  "pm.test('Tiene id/name/email/created_at', () => {",
                   "  pm.expect(json).to.have.property('id');",
                   "  pm.expect(json).to.have.property('name');",
                   "  pm.expect(json).to.have.property('email');",
                   "  pm.expect(json).to.have.property('created_at');",
-                  "});",
-                  "pm.collectionVariables.set('lastUserId', json.id);",
-                  "pm.collectionVariables.set('lastUserEmail', json.email);"
+                  "});"
                 ]
               }
             }
@@ -119,9 +124,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test('Tiene items[] y total', function () {",
+                  "pm.test('Tiene items[] y total', () => {",
                   "  pm.expect(json).to.have.property('items');",
                   "  pm.expect(json).to.have.property('total');",
                   "});"
@@ -131,43 +136,77 @@
           ]
         },
         {
-          "name": "GET /users/:id/orders (by user)",
+          "name": "GET /users (search by q)",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/users/{{userId}}/orders",
+              "raw": "{{baseUrl}}/users?q=&page=1&limit=10",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "users",
-                "{{userId}}",
-                "orders"
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Ingresa aquí el texto de búsqueda (name/email)"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
               ]
-            }
+            },
+            "description": "Introduce manualmente el valor de `q` (por nombre o email)."
           },
           "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (!pm.variables.get('userId')) {",
-                  "  const last = pm.collectionVariables.get('lastUserId') || 1;",
-                  "  pm.variables.set('userId', last);",
-                  "}"
-                ]
-              }
-            },
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test('items es array', function () { pm.expect(Array.isArray(json.items)).to.be.true; });"
+                  "pm.test('items es array', () => pm.expect(Array.isArray(json.items)).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /users/:userId/orders (by user)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/:userId/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                ":userId",
+                "orders"
+              ]
+            },
+            "description": "Usa el **Path Variables** de Postman para asignar `:userId` (por ejemplo, 1)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('items es array', () => pm.expect(Array.isArray(json.items)).to.be.true);"
                 ]
               }
             }
@@ -190,7 +229,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user_id\": {{lastUserId}},\n  \"product_name\": \"Cuaderno A4\",\n  \"amount\": 12.5\n}"
+              "raw": "{\n  \"user_id\": 1,\n  \"product_name\": \"Cuaderno A4\",\n  \"amount\": 12.5\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/orders",
@@ -200,29 +239,18 @@
               "path": [
                 "orders"
               ]
-            }
+            },
+            "description": "Edita user_id, product_name y amount (importe decimal)"
           },
           "event": [
-            {
-              "listen": "prerequest",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (!pm.collectionVariables.get('lastUserId')) {",
-                  "  pm.collectionVariables.set('lastUserId', 1);",
-                  "}"
-                ]
-              }
-            },
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
                   "const json = pm.response.json();",
-                  "pm.test('amount es número > 0', function () { pm.expect(json.amount).to.be.above(0); });",
-                  "pm.collectionVariables.set('lastOrderId', json.id);"
+                  "pm.test('amount > 0', () => pm.expect(json.amount).to.be.above(0));"
                 ]
               }
             }
@@ -259,9 +287,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
-                  "pm.test('items[] incl. user', function () {",
+                  "pm.test('items[] incl. user', () => {",
                   "  if (json.items.length) {",
                   "    pm.expect(json.items[0]).to.have.property('user');",
                   "  } else {",
@@ -272,14 +300,53 @@
               }
             }
           ]
+        },
+        {
+          "name": "GET /orders (search by q)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders?q=&page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "Ingresa aquí el texto de búsqueda por product_name"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Introduce manualmente el valor de `q` (por product_name)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('items es array', () => pm.expect(Array.isArray(json.items)).to.be.true);"
+                ]
+              }
+            }
+          ]
         }
       ]
-    }
-  ],
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:5000"
     }
   ]
 }
