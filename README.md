@@ -1,25 +1,20 @@
-# Fullstack Challenge – Monorepo (V3) [![API Docs](https://img.shields.io/badge/Swagger-OpenAPI%203-blue?logo=swagger)](http://localhost:5000/apidocs)
+# Fullstack Challenge – Monorepo (V4) [![API Docs](https://img.shields.io/badge/Swagger-OpenAPI%203-blue?logo=swagger)](http://localhost:5000/apidocs)
 
-> **Estado:** V3 completado (UI mínima: formularios y listas para Usuarios y Órdenes).  
+> **Estado:** V4 completado (Context API de notificaciones, formularios con React Hook Form + Zod, búsquedas simples y toasts).  
 > **Meta de proyecto:** llegar hasta V7 con API, UI, extras y deploy.  
 > **Stack:** Monorepo (npm workspaces) · Frontend (React + TypeScript + Vite + Bootstrap, React Router 7) · Backend (Flask + SQLAlchemy + Flask‑Migrate + Flasgger) · Calidad (Ruff) · DX (ESLint/Prettier, concurrently).
 
 ---
 
-## ¿Qué incluye la V3?
+## ¿Qué incluye la V4?
 
-- ✅ **UI mínima usable** (responsive, Bootstrap).
-- ✅ **Usuarios**
-  - Formulario para crear usuario (name, email).
-  - Tabla paginada para listar usuarios.
-- ✅ **Órdenes**
-  - Formulario para crear orden (usuario, producto, **importe**).
-  - Tabla paginada con join de usuario (muestra nombre y email).
-- ✅ **Cliente HTTP con `fetch` tipado** + **tipos compartidos**.
-- ✅ **Manejo de estados**: loading y errores visibles (alerts/spinners).
-- ✅ Se mantiene todo lo de **V2**: endpoints, errores JSON, paginación, Swagger y Postman.
-
-> **Importante:** en `Order`, el campo **`amount`** representa el **importe** (decimal). En la base está como `Numeric(10,2)` y debe ser **> 0**.
+- ✅ **Context API de notificaciones**
+- ✅ **Formularios con React Hook Form + Zod** para validación UI
+- ✅ **Búsquedas livianas**:
+  - `GET /users?q=texto` (filtra por **name/email**).
+  - `GET /orders?q=texto` (filtra por **product_name**).
+  - Input con **debounce** sencillo.
+- ✅ Se mantiene todo lo de **V3**: UI responsive con Bootstrap, tablas paginadas, `fetch` tipado, errores visibles, Swagger, etc.
 
 ---
 
@@ -32,81 +27,74 @@
 
 ---
 
-## Estructura de carpetas (actualizada en V3)
+## Estructura de carpetas (actualizada en V4)
 
 ```
 / (repo raíz)
-├─ frontend/                            # React + TS + Vite + Bootstrap + React Router 7
+├─ frontend/                          # React + TS + Vite + Bootstrap + React Router 7
 │  ├─ src/
-│  │  ├─ App.tsx                        # Layout (Navbar/Footer) + <Outlet/>
-│  │  ├─ main.tsx                       # Router declarativo
+│  │  ├─ App.tsx                      # Layout (Navbar/Footer) + <Outlet/>
+│  │  ├─ main.tsx                     # Router declarativo + NotificationsProvider
 │  │  ├─ types/
-│  │  │  └─ api.ts                      # Tipos compartidos de la API
+│  │  │  └─ api.ts                    # Tipos compartidos de la API
 │  │  ├─ services/
-│  │  │  └─ api.ts                      # Cliente fetch tipado
+│  │  │  └─ api.ts                    # Cliente fetch tipado
 │  │  ├─ utils/
-│  │  │  └─ number.ts                   # parse/format del importe
+│  │  │  └─ number.ts                 # parse/format del importe
+│  │  ├─ validation/
+│  │  │  └─ schemas.ts                # Esquemas de Zod para forms
+│  │  ├─ context/
+│  │  │  ├─ Notifications.tsx          # Provider + <Toaster />
+│  │  │  └─ notifications-context.ts   # createContext + tipos
+│  │  ├─ hooks/
+│  │  │  └─ useNotify.ts               # hook que consume el contexto
 │  │  ├─ components/
+│  │  │  ├─ inputs/
+│  │  │  │  └─ DebouncedInput.tsx      # input con debounce
 │  │  │  ├─ feedback/
 │  │  │  │  ├─ InlineError.tsx
 │  │  │  │  └─ SmallSpinner.tsx
 │  │  │  ├─ forms/
-│  │  │  │  ├─ CreateUserForm.tsx
-│  │  │  │  └─ CreateOrderForm.tsx
+│  │  │  │  ├─ CreateUserForm.tsx      # React Hook Form + Zod
+│  │  │  │  └─ CreateOrderForm.tsx     # React Hook Form + Zod
 │  │  │  └─ tables/
-│  │  │     ├─ UsersTable.tsx
-│  │  │     └─ OrdersTable.tsx
+│  │  │     ├─ UsersTable.tsx          # lista paginada + búsqueda
+│  │  │     └─ OrdersTable.tsx         # lista paginada + búsqueda
 │  │  └─ pages/
-│  │     ├─ Users.tsx                   # compone form + table
-│  │     └─ Orders.tsx                  # compone form + table
+│  │     ├─ Users.tsx
+│  │     └─ Orders.tsx
 │  ├─ .env.example
 │  └─ package.json
-├─ backend/                             # Flask app factory + CORS + /health + API V2
+├─ backend/
 │  ├─ app/
-│  │  ├─ __init__.py                    # + Swagger(app) (UI en /apidocs)
-│  │  ├─ config.py                      # Dev/Test/Prod
-│  │  ├─ extensions.py                  # db, migrate, cors
-│  │  ├─ errors.py                      # helpers y handlers JSON
+│  │  ├─ __init__.py                   # Swagger en /apidocs
 │  │  ├─ api/
-│  │  │  ├─ health.py                   # GET /health
-│  │  │  ├─ users.py                    # POST/GET users, GET users/:id/orders
-│  │  │  └─ orders.py                   # POST/GET orders (incl. user)
+│  │  │  ├─ users.py                   # ahora soporta ?q= (name/email)
+│  │  │  └─ orders.py                  # ahora soporta ?q= (product_name)
 │  │  ├─ models/
-│  │  │  ├─ __init__.py
-│  │  │  ├─ user.py
-│  │  │  └─ order.py                    # amount = Numeric(10,2) (importe)
-│  │  ├─ seeds/seed_basic.py
-│  │  └─ cli.py
-│  ├─ migrations/
-│  ├─ .env.example
-│  ├─ pyproject.toml
-│  ├─ requirements.txt
-│  ├─ wsgi.py
-│  └─ package.json
-├─ infra/
-│  └─ postman/                          # colección y environment
-│     ├─ fullstack-challenge.postman_collection.json
-│     └─ fullstack-challenge-local.postman_environment.json
-├─ package.json                         # workspaces + scripts raíz (dev, lint, format)
-├─ .gitignore
-└─ README.md
+│  │  │  └─ order.py
+│  │  └─ ...
+├─ infra/postman/
+│  ├─ fullstack-challenge.postman_collection.json
+│  └─ fullstack-challenge-local.postman_environment.json
+└─ ...
 ```
 
 ---
 
-## Instalación
+## Instalación / Actualización
 
-1. **Instalar dependencias del monorepo**
+1. **Instalar/actualizar dependencias del monorepo**
 
 ```bash
 npm install
 ```
 
-2. **Frontend**
+2. **Variables de entorno** (si aplica)
 
 ```bash
 cp frontend/.env.example frontend/.env.local
-# Ajusta VITE_API_BASE_URL si cambias el puerto o la URL del backend
+# Ajusta VITE_API_BASE_URL si cambias el backend
 ```
 
 3. **Backend**
@@ -130,20 +118,16 @@ cd ..
 
 ## Ejecutar en desarrollo
 
-### Opción A — Un solo comando (recomendado)
+### Opción A — Un solo comando
 
-1. Activa el virtualenv del backend en la **misma terminal** que usarás para `npm run dev`:
+1. Activa el venv del backend en la **misma terminal** que usarás para `npm run dev`:
 
 ```bash
-cd backend
-# macOS/Linux
-source .venv/bin/activate
-# Windows (Git Bash)
-source .venv/Scripts/activate
+cd backend && source .venv/bin/activate  # Windows (Git Bash): source .venv/Scripts/activate
 cd ..
 ```
 
-2. En la **raíz del repo**:
+2. En la **raíz**:
 
 ```bash
 npm run dev
@@ -170,7 +154,7 @@ npm run dev
 
 ## Documentación de API (Swagger)
 
-- Accede con el badge (arriba) o abre **`http://localhost:5000/apidocs`**.
+- Abre **`http://localhost:5000/apidocs`**.
 - Grupos **Users** y **Orders** con parámetros, cuerpos y respuestas.
 - Podés ejecutar requests desde la UI.
 
@@ -178,23 +162,13 @@ npm run dev
 
 ## Colección Postman
 
-### Archivos en el repo
-
 - **Colección:** [`infra/postman/fullstack-challenge.postman_collection.json`](infra/postman/fullstack-challenge.postman_collection.json)
 - **Environment local:** [`infra/postman/fullstack-challenge-local.postman_environment.json`](infra/postman/fullstack-challenge-local.postman_environment.json)
 
-### Importación en Postman
+Importación:
 
 1. **File → Import** y selecciona ambos archivos.
-2. En **Environments**, elige **“Fullstack Challenge – Local”** (define `{{baseUrl}}` = `http://localhost:5000`).
-
-### Orden sugerido de requests
-
-1. `Health / GET /health`
-2. `Users / POST /users (create)` → guarda `lastUserId` como variable de colección
-3. `Orders / POST /orders (create)` → usa `{{lastUserId}}` y **importe** (decimal), ej. `12.50`
-4. `Orders / GET /orders`
-5. `Users / GET /users/:id/orders`
+2. En **Environments**, elige **“Fullstack Challenge – Local”** (`{{baseUrl}}` = `http://localhost:5000`).
 
 ---
 
@@ -241,8 +215,13 @@ npm run dev
 
 ## Changelog
 
+- **V4**
+  - Context API para notificaciones (Provider + hook) con **react-hot-toast**.
+  - Migración a **React Hook Form + Zod** (`mode: "onTouched"`).
+  - Doble esquema para órdenes: `CreateOrderFormSchema` (string) → `CreateOrderSchema` (number transform).
+  - Búsquedas con `?q=` en **users** (name/email) y **orders** (product_name); debounce simple.
 - **V3**
-  - UI con formularios y tablas (Usuarios / Órdenes), `fetch` tipado, manejo de loading/errores, responsive.
+  - UI con formularios y tablas (Usuarios / Órdenes), `fetch` tipado, loading/errores, responsive.
 - **V2**
   - Endpoints Users/Orders con paginación y errores JSON. Swagger en `/apidocs`. Colección Postman.
 - **V1**
