@@ -3,7 +3,6 @@ services:
   - name: fullstack-backend
     type: web
     runtime: python
-    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     # Ejecuta migraciones y luego arranca Gunicorn
@@ -21,7 +20,6 @@ services:
   - name: fullstack-frontend
     type: web
     runtime: static
-    plan: free
     rootDir: frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
