@@ -12,7 +12,6 @@
 ## Tabla de contenidos
 
 - [URLs de producción](#urls-de-producción)
-- [¿Qué incluye la V6.1?](#qué-incluye-la-v61)
 - [Enfoque y buenas prácticas](#enfoque-y-buenas-prácticas)
 - [Estructura de carpetas](#estructura-de-carpetas)
 - [Instalación / Actualización](#instalación--actualización)
@@ -37,19 +36,9 @@
 
 ---
 
-## ¿Qué incluye la V6.1?
-
-- ✅ **Deploy en Render (V6)** de **frontend** (Static Site) y **backend** (Web Service).
-- ✅ **Página de inicio (Home)**: hero con CTA, acceso rápido a **Usuarios**, **Órdenes** y **Swagger**, y cards de features.
-- ✅ **Migraciones en producción**: el servicio backend ejecuta `flask db upgrade` **antes** de arrancar Gunicorn para evitar errores tipo _no such table_.
-- ✅ **Colección Postman** actualizada con endpoints **IO** (export/import).
-- ✅ Eliminado `render.yaml` del repo (se optó por **deploy manual** en Render para reducir fricción).
-
----
-
 ## Enfoque y buenas prácticas
 
-- **Desarrollo terativo y versionado**: V0→V6.1 con **tags** y ramas feature → PR → `dev` (por defecto) → `main` (protegida).
+- **Desarrollo iterativo y versionado**: V0→V6.1 con **tags** y ramas feature → PR → `dev` (por defecto) → `main` (protegida).
 - **Simplicidad primero**: `fetch` nativo, Context mínimo, sin optimizaciones prematuras.
 - **Coherencia de errores**: backend responde `{"error":{code,message}}`.
 - **DX**: `npm run dev` lanza API+Web; linters (Ruff/ESLint), scripts claros, README por versión.
