@@ -1,46 +1,48 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  CreateUserSchema,
+  type CreateUserInput,
+} from "../../validation/schemas";
 import { ApiError, createUser } from "../../services/api";
-import InlineError from "../feedback/InlineError";
+import { useNotify } from "../../hooks/useNotify";
 
 export default function CreateUserForm({
   onCreated,
 }: {
   onCreated?: () => void;
 }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const notify = useNotify();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<CreateUserInput>({
+    resolver: zodResolver(CreateUserSchema),
+    mode: "onTouched",
+  });
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    if (!name.trim() || !email.trim()) {
-      setError("Name y email son obligatorios");
-      return;
-    }
-
+  const onSubmit = async (data: CreateUserInput) => {
     try {
-      setSubmitting(true);
       await createUser({
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
+        name: data.name.trim(),
+        email: data.email.trim().toLowerCase(),
       });
-      setName("");
-      setEmail("");
+      notify.success("Usuario creado");
+      reset();
       onCreated?.();
-    } catch (err) {
-      if (err instanceof ApiError)
-        setError(err.payload?.error?.message ?? err.message);
-      else setError("Error inesperado");
-    } finally {
-      setSubmitting(false);
+    } catch (e) {
+      const msg =
+        e instanceof ApiError
+          ? (e.payload?.error?.message ?? e.message)
+          : "Error inesperado";
+      notify.error(msg);
     }
-  }
+  };
 
   return (
-    <form onSubmit={onSubmit} className="card p-3 mb-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="card p-3 mb-4">
       <h5 className="mb-3">Crear usuario</h5>
 
       <div className="row g-3">
@@ -48,30 +50,30 @@ export default function CreateUserForm({
           <label className="form-label">Nombre</label>
           <input
             className="form-control"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
             placeholder="Ada Lovelace"
-            required
+            {...register("name")}
           />
+          {errors.name && (
+            <div className="text-danger small mt-1">{errors.name.message}</div>
+          )}
         </div>
         <div className="col-md-6">
           <label className="form-label">Email</label>
           <input
             type="email"
             className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             placeholder="ada@example.com"
-            required
+            {...register("email")}
           />
+          {errors.email && (
+            <div className="text-danger small mt-1">{errors.email.message}</div>
+          )}
         </div>
       </div>
 
-      {error && <InlineError message={error} />}
-
       <div className="mt-3">
-        <button className="btn btn-primary" disabled={submitting}>
-          {submitting ? "Creando…" : "Crear usuario"}
+        <button className="btn btn-primary" disabled={isSubmitting}>
+          {isSubmitting ? "Creando…" : "Crear usuario"}
         </button>
       </div>
     </form>

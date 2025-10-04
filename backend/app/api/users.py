@@ -1,7 +1,7 @@
 # app/api/users.py
 from flask import Blueprint, request, jsonify
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from ..extensions import db
 from ..models import User, Order
 from ..errors import make_error
@@ -79,7 +79,8 @@ def create_user():
   "summary": "Listar usuarios (paginado)",
   "parameters": [
     {"in": "query", "name": "page", "type": "integer", "default": 1},
-    {"in": "query", "name": "limit", "type": "integer", "default": 10}
+    {"in": "query", "name": "limit", "type": "integer", "default": 10},
+    {"in": "query", "name": "q", "type": "string", "description": "Buscar usuarios por nombre o email"}
   ],
   "responses": {"200": {"description": "OK"}}
 })
@@ -87,7 +88,13 @@ def list_users():
     page, limit, err = parse_pagination()
     if err: return err
 
-    query = User.query.order_by(User.created_at.desc())
+    q = (request.args.get("q") or "").strip()
+    query = User.query
+    if q:
+        like = f"%{q}%"
+        query = query.filter(or_(User.name.ilike(like), User.email.ilike(like)))
+
+    query = query.order_by(User.created_at.desc())
     total = query.count()
     items = query.offset((page-1)*limit).limit(limit).all()
 
