@@ -4,10 +4,12 @@ import type { Order } from "../../types/api";
 import SmallSpinner from "../feedback/SmallSpinner";
 import InlineError from "../feedback/InlineError";
 import { formatAmount } from "../../utils/number";
+import DebouncedInput from "../inputs/DebouncedInput";
 
 export default function OrdersTable() {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+  const [q, setQ] = useState("");
   const [data, setData] = useState<{
     items: Order[];
     total: number;
@@ -22,7 +24,7 @@ export default function OrdersTable() {
     setError(null);
     (async () => {
       try {
-        const res = await listOrders({ page, limit });
+        const res = await listOrders({ page, limit, q });
         if (!cancel)
           setData({ items: res.items, total: res.total, pages: res.pages });
       } catch (e) {
@@ -35,13 +37,22 @@ export default function OrdersTable() {
     return () => {
       cancel = true;
     };
-  }, [page, limit]);
+  }, [page, limit, q]);
 
   return (
     <div className="card">
       <div className="card-header d-flex justify-content-between align-items-center">
         <h6 className="mb-0">Órdenes</h6>
-        {loading && <SmallSpinner />}
+        <div className="ms-auto d-flex">
+          {loading && <SmallSpinner />}
+          <div style={{ minWidth: 240 }}>
+            <DebouncedInput
+              value={q}
+              onChange={setQ}
+              placeholder="Buscar por producto..."
+            />
+          </div>
+        </div>
       </div>
 
       <div className="table-responsive">

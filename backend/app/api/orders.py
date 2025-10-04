@@ -77,7 +77,8 @@ def create_order():
   "summary": "Listar pedidos (paginado, incluye usuario)",
   "parameters": [
     {"in": "query", "name": "page", "type": "integer", "default": 1},
-    {"in": "query", "name": "limit", "type": "integer", "default": 10}
+    {"in": "query", "name": "limit", "type": "integer", "default": 10},
+    {"in": "query", "name": "q", "type": "string", "description": "Filtrar por nombre de producto (búsqueda parcial)"}
   ],
   "responses": {"200": {"description": "OK"}}
 })
@@ -85,9 +86,13 @@ def list_orders():
     page, limit, err = parse_pagination()
     if err: return err
 
-    query = (Order.query
-             .options(selectinload(Order.user))
-             .order_by(Order.created_at.desc()))
+    q = (request.args.get("q") or "").strip()
+    query = (Order.query.options(selectinload(Order.user)))
+    if q:
+        like = f"%{q}%"
+        query = query.filter(Order.product_name.ilike(like))
+
+    query = query.order_by(Order.created_at.desc())
     total = query.count()
     items = query.offset((page-1)*limit).limit(limit).all()
 
