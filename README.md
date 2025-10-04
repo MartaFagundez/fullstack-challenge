@@ -1,13 +1,18 @@
-# Fullstack Challenge – Monorepo (V5) [![API Docs](https://img.shields.io/badge/Swagger-OpenAPI%203-blue?logo=swagger)](http://localhost:5000/apidocs)
+# Fullstack Challenge – Monorepo (V6.1)
 
-> **Estado:** V5 completado (**Export/Import JSON** desde UI y API + **seeds con Faker 37.8.0**).  
+[![Frontend Live](https://img.shields.io/website?url=https%3A%2F%2Ffullstack-challenge-frontend.onrender.com%2F&label=Frontend%20Live)](https://fullstack-challenge-frontend.onrender.com/)
+[![API Health](https://img.shields.io/website?url=https%3A%2F%2Ffullstack-challenge-backend-q59v.onrender.com%2Fhealth&label=API%20Health)](https://fullstack-challenge-backend-q59v.onrender.com/health)
+[![API Docs](https://img.shields.io/badge/Swagger-OpenAPI%203-blue?logo=swagger)](https://fullstack-challenge-backend-q59v.onrender.com/apidocs)
+
+> **Estado:** V6.1 — Deploy realizado (V6) + Home page añadida, colección Postman con IO.  
 > **Stack:** Monorepo (npm workspaces) · Frontend (React + TypeScript + Vite + Bootstrap, React Router 7) · Backend (Flask + SQLAlchemy + Flask‑Migrate + Flasgger) · Calidad (Ruff) · DX (ESLint/Prettier, concurrently).
 
 ---
 
 ## Tabla de contenidos
 
-- [¿Qué incluye la V5?](#qué-incluye-la-v5)
+- [URLs de producción](#urls-de-producción)
+- [¿Qué incluye la V6.1?](#qué-incluye-la-v61)
 - [Enfoque y buenas prácticas](#enfoque-y-buenas-prácticas)
 - [Estructura de carpetas](#estructura-de-carpetas)
 - [Instalación / Actualización](#instalación--actualización)
@@ -16,6 +21,7 @@
 - [Seeds con Faker](#seeds-con-faker)
 - [Documentación de API (Swagger)](#documentación-de-api-swagger)
 - [Colección Postman](#colección-postman)
+- [Deploy (Render) — Resumen](#deploy-render--resumen)
 - [Scripts útiles](#scripts-útiles)
 - [Changelog](#changelog)
 - [Solución de problemas (FAQ)](#solución-de-problemas-faq)
@@ -23,23 +29,28 @@
 
 ---
 
-## ¿Qué incluye la V5?
+## URLs de producción
 
-- ✅ **Export/Import JSON**:
-  - **UI**: botones para exportar/importar **Usuarios** y **Órdenes** (descarga JSON y selector de archivo).
-  - **API**:
-    - `GET /export/users`, `GET /export/orders`, `GET /export/all`
-    - `POST /import/users` (omite duplicados por email), `POST /import/orders` (requiere `user_id` válido y `amount > 0`)
-- ✅ **Seeds con Faker 37.8.0** (CLI `seed-faker`) para poblar datos de prueba en segundos.
-- ✅ Se mantiene todo lo de **V4**:
-  - Context de notificaciones (**react-hot-toast**), formularios con **React Hook Form + Zod** (modo `onTouched`), búsqueda `?q=` en listados y UI responsive con Bootstrap.
+- **Frontend (prod):** `https://fullstack-challenge-frontend.onrender.com/`
+- **Backend (prod):** `https://fullstack-challenge-backend-q59v.onrender.com`
+- **Swagger (prod):** `https://fullstack-challenge-backend-q59v.onrender.com/apidocs`
+
+---
+
+## ¿Qué incluye la V6.1?
+
+- ✅ **Deploy en Render (V6)** de **frontend** (Static Site) y **backend** (Web Service).
+- ✅ **Página de inicio (Home)**: hero con CTA, acceso rápido a **Usuarios**, **Órdenes** y **Swagger**, y cards de features.
+- ✅ **Migraciones en producción**: el servicio backend ejecuta `flask db upgrade` **antes** de arrancar Gunicorn para evitar errores tipo _no such table_.
+- ✅ **Colección Postman** actualizada con endpoints **IO** (export/import).
+- ✅ Eliminado `render.yaml` del repo (se optó por **deploy manual** en Render para reducir fricción).
 
 ---
 
 ## Enfoque y buenas prácticas
 
-- **Desarrollo iterativo y versionado**: V0→V5 con **tags** (`v0.0`, `v1.0`, …) y ramas **feature** → PR → `dev` (por defecto) → `main` (protegida).
-- **Simplicidad primero**: fetch nativo, Context mínimo, sin optimizaciones prematuras.
+- **Iterativo y versionado**: V0→V6.1 con **tags** y ramas feature → PR → `dev` (por defecto) → `main` (protegida).
+- **Simplicidad primero**: `fetch` nativo, Context mínimo, sin optimizaciones prematuras.
 - **Coherencia de errores**: backend responde `{"error":{code,message}}`.
 - **DX**: `npm run dev` lanza API+Web; linters (Ruff/ESLint), scripts claros, README por versión.
 - **UI**: interfaz responsive, componentes accesibles; formularios con feedback y toasts.
@@ -85,6 +96,7 @@
 │  │  │     ├─ UsersTable.tsx           # lista paginada + búsqueda
 │  │  │     └─ OrdersTable.tsx          # lista paginada + búsqueda
 │  │  └─ pages/
+│  │     ├─ Home.tsx                    # NUEVO: hero + CTA + cards
 │  │     ├─ Users.tsx
 │  │     └─ Orders.tsx
 │  ├─ .env.example
@@ -218,8 +230,29 @@ flask --app app:create_app seed-faker --users 30 --orders 100
 
 Uso:
 
-- `{{baseUrl}}` apunta a `http://localhost:5000`.
-- Requests de búsqueda traen `q=` vacío para que lo completes manualmente.
+- `{{baseUrl}}` → `http://localhost:5000` en local (ajústalo a prod para probar en la nube).
+- Búsquedas `?q=` listas para editar manualmente.
+- `GET /users/:userId/orders` usa **path variable** `:userId`.
+
+---
+
+## Deploy (Render) — Resumen
+
+- **Frontend (Static Site)**
+  - Root: `frontend` · Build: `npm ci && npm run build` · Publish: `dist`
+  - **Rewrite** SPA: `/*  →  /index.html` (Action: _Rewrite_)
+  - **Build Env Var**: `VITE_API_BASE_URL=https://<tu-backend>.onrender.com`
+
+- **Backend (Web Service, Python)**
+  - Root: `backend` · Build: `pip install -r requirements.txt`
+  - **Start Command**:
+    ```bash
+    flask --app app:create_app db upgrade && gunicorn -w 2 -b 0.0.0.0:$PORT wsgi:app
+    ```
+  - **Env Vars**: `FLASK_ENV=production`, `DATABASE_URL=sqlite:///app.db`,  
+    `CORS_ORIGINS=https://<tu-frontend>.onrender.com`
+
+> Con SQLite en Render (filesystem efímero) se recomienda correr `db upgrade` en cada arranque. Para datos persistentes, conectar un Postgres gestionado y setear `DATABASE_URL`.
 
 ---
 
@@ -266,9 +299,15 @@ Uso:
 
 ## Changelog
 
+- **V6.1**
+  - Home page con hero + CTA y cards.
+  - Migraciones automáticas en prod (`db upgrade` en Start Command).
+  - Colección Postman con IO.
+  - Repo limpio (sin `render.yaml`).
+- **V6**
+  - Deploy en Render (frontend y backend conectados).
 - **V5**
-  - **Export/Import JSON** (UI + API) para usuarios y órdenes.
-  - **Faker**: comando `seed-faker` para generar datos.
+  - Export/Import JSON (UI + API). Faker para seeds.
 - **V4**
   - Context de notificaciones (react-hot-toast), RHF + Zod, búsqueda `?q=`.
 - **V3**
