@@ -24,6 +24,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="users" element={<Users />} />
             <Route path="orders" element={<Orders />} />
           </Route>
+          <Route path="*" element={<App />} />
         </Routes>
       </NotificationsProvider>
     </BrowserRouter>
