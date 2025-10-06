@@ -5,6 +5,8 @@
   "scripts": {
     "api": "flask --app app:create_app run --debug --port 5000",
     "lint": "ruff check app",
-    "fmt": "ruff format app"
+    "fmt": "ruff format app",
+    "test": "pytest",
+    "coverage": "pytest --cov=app --cov-report=term-missing"
   }
 }
